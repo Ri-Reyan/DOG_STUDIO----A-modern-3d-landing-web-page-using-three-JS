@@ -6,14 +6,14 @@ import {
   useTexture,
 } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 const Dog = () => {
-  gsap.registerPlugin(useGSAP());
+  gsap.registerPlugin(useGSAP);
   gsap.registerPlugin(ScrollTrigger);
 
   const model = useGLTF("/models/dog.drc.glb");
@@ -21,7 +21,7 @@ const Dog = () => {
   useThree(({ camera, gl }) => {
     camera.position.z = 1;
     gl.toneMapping = THREE.ReinhardToneMapping;
-    gl.outputColorSpace - THREE.SRGBColorSpace;
+    gl.outputColorSpace = THREE.SRGBColorSpace;
   });
 
   const { actions } = useAnimations(model.animations, model.scene);
@@ -47,53 +47,122 @@ const Dog = () => {
     actions["Take 001"].play();
   }, [actions]);
 
-  const dogMaterial = new THREE.MeshMatcapMaterial({
-    normalMap: normalMap,
-    // color: "teal",
-    matcap: sampleMatCap,
-  });
+  const dogMaterial = useMemo(
+    () =>
+      new THREE.MeshMatcapMaterial({
+        normalMap: normalMap,
+        matcap: sampleMatCap,
+      }),
+    [],
+  );
 
-  const barnchMaterial = new THREE.MeshStandardMaterial({
-    branchNormalMap: branchNormalMap,
-    branchMap: branchMap,
-    color: "black",
-  });
+  const branchMaterial = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        branchNormalMap: branchNormalMap,
+        branchMap: branchMap,
+        color: "black",
+      }),
+    [],
+  );
 
   model.scene.traverse((child) => {
     if (child.name.includes("DOG")) {
       child.material = dogMaterial;
     } else if (child.name.includes("BRANCH")) {
-      child.material = barnchMaterial;
+      child.material = branchMaterial;
     }
   });
 
   const modelRef = useRef(model);
 
+  const dogMaterialRef = useRef();
+  const branchMaterialRef = useRef();
+
+  dogMaterialRef.current = dogMaterial;
+  branchMaterialRef.current = branchMaterial;
+
+  const originalDogColor = dogMaterial.color.clone();
+  const originalBranchColor = branchMaterial.color.clone();
+
   useGSAP(() => {
-    const tl = gsap.timeline({
+    const moveTl = gsap.timeline({
       scrollTrigger: {
         trigger: "#section-1",
-        endTrigger: "#section-3",
+        endTrigger: "#section-2",
         start: "top top",
+        end: "top middle",
+        scrub: true,
+      },
+    });
+
+    moveTl
+      .to(modelRef.current.scene.position, {
+        z: "-=0.75",
+        y: "+=0.1",
+      })
+      .to(modelRef.current.scene.rotation, {
+        x: `+=${Math.PI / 18}`,
+      });
+
+    const colorTl = gsap.timeline({
+      scrollTrigger: {
+        trigger: "#section-2",
+        endTrigger: "#section-3",
+        start: "top middle",
         end: "bottom bottom",
         scrub: true,
       },
     });
 
-    tl.to(modelRef.current.scene.position, {
-      z: "-=0.75",
-      y: "+=0.1",
-    })
-      .to(modelRef.current.scene.rotation, {
-        x: `+=${Math.PI / 18}`,
+    colorTl
+      .to([dogMaterial.color, branchMaterial.color], {
+        ...new THREE.Color("gold"),
+      })
+      .to([dogMaterial.color, branchMaterial.color], {
+        ...new THREE.Color("teal"),
+      })
+      .to([dogMaterial.color, branchMaterial.color], {
+        ...new THREE.Color("blue"),
+      })
+      .to([dogMaterial.color, branchMaterial.color], {
+        ...new THREE.Color("pink"),
+      })
+      .to([dogMaterial.color, branchMaterial.color], {
+        ...new THREE.Color("green"),
+      })
+      .to([dogMaterial.color, branchMaterial.color], {
+        ...new THREE.Color("red"),
+      })
+      .to(dogMaterial.color, {
+        r: originalDogColor.r,
+        g: originalDogColor.g,
+        b: originalDogColor.b,
       })
       .to(
-        modelRef.current.scene.rotation,
+        branchMaterial.color,
         {
-          y: `-=${Math.PI}`,
+          r: originalBranchColor.r,
+          g: originalBranchColor.g,
+          b: originalBranchColor.b,
         },
-        "third",
-      )
+        "<",
+      );
+
+    const moveTl2 = gsap.timeline({
+      scrollTrigger: {
+        trigger: "#section-3",
+        endTrigger: "#section-4",
+        start: "bottom bottom",
+        end: "bottom top",
+        scrub: true,
+      },
+    });
+
+    moveTl2
+      .to(modelRef.current.scene.rotation, {
+        y: `-=${Math.PI}`,
+      })
       .to(
         modelRef.current.scene.position,
         {
@@ -101,7 +170,7 @@ const Dog = () => {
           z: "+=0.37",
           y: "+=0.2",
         },
-        "third",
+        "<",
       );
   }, []);
 
