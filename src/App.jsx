@@ -4,13 +4,13 @@ import Sections from "./components/Sections";
 
 const App = () => {
   return (
-    <div className="h-screen w-screen top-0 left-0">
+    <div className="min-h-screen w-full overflow-x-hidden">
       <main
         style={{
           backgroundImage: "url(/background-l.png)",
           backgroundRepeat: "no-repeat",
         }}
-        className="h-full w-full z-0 fixed"
+        className="fixed inset-0 z-0"
       >
         <Canvas>
           <Dog />
