@@ -6,10 +6,16 @@ import {
   useTexture,
 } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 const Dog = () => {
+  gsap.registerPlugin(useGSAP());
+  gsap.registerPlugin(ScrollTrigger);
+
   const model = useGLTF("/models/dog.drc.glb");
 
   useThree(({ camera, gl }) => {
@@ -50,7 +56,7 @@ const Dog = () => {
   const barnchMaterial = new THREE.MeshStandardMaterial({
     branchNormalMap: branchNormalMap,
     branchMap: branchMap,
-    color: "orange",
+    color: "black",
   });
 
   model.scene.traverse((child) => {
@@ -60,12 +66,51 @@ const Dog = () => {
       child.material = barnchMaterial;
     }
   });
+
+  const modelRef = useRef(model);
+
+  useGSAP(() => {
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: "#section-1",
+        endTrigger: "#section-3",
+        start: "top top",
+        end: "bottom bottom",
+        scrub: true,
+      },
+    });
+
+    tl.to(modelRef.current.scene.position, {
+      z: "-=0.75",
+      y: "+=0.1",
+    })
+      .to(modelRef.current.scene.rotation, {
+        x: `+=${Math.PI / 18}`,
+      })
+      .to(
+        modelRef.current.scene.rotation,
+        {
+          y: `-=${Math.PI}`,
+        },
+        "third",
+      )
+      .to(
+        modelRef.current.scene.position,
+        {
+          x: "-=0.5",
+          z: "+=0.37",
+          y: "+=0.2",
+        },
+        "third",
+      );
+  }, []);
+
   return (
     <>
       <primitive
         object={model.scene}
-        position={[0.25, -0.5, 0.15]}
-        rotation={[0, Math.PI / 3.9, 0]}
+        position={[0.14, -0.64, 0.7]}
+        rotation={[0, Math.PI / 6.8, 0]}
       />
       <directionalLight position={[0, 2, 2]} color={"white"} intensity={10} />
       {/* <OrbitControls /> */}
