@@ -47,7 +47,7 @@ const Dog = () => {
     matcap: sampleMatCap,
   });
 
-  const barnchMaterial = new THREE.MeshBasicMaterial({
+  const barnchMaterial = new THREE.MeshStandardMaterial({
     branchNormalMap: branchNormalMap,
     branchMap: branchMap,
     color: "orange",
@@ -65,7 +65,7 @@ const Dog = () => {
       <primitive
         object={model.scene}
         position={[0.25, -0.5, 0.15]}
-        rotation={[0, 45, 0]}
+        rotation={[0, Math.PI / 3.9, 0]}
       />
       <directionalLight position={[0, 2, 2]} color={"white"} intensity={10} />
       {/* <OrbitControls /> */}
